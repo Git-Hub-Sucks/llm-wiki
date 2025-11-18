@@ -30,10 +30,17 @@ session.cookies = cj
 
 
 def make_soup(url):
-    response = session.get(url)
-    data = response.text
-    soup = BeautifulSoup(data, "lxml")
-    return soup
+    try:
+        response = session.get(url)
+    except:
+        print( f"Failed to fetch: {url}" )
+        response = None
+    if response is not None:
+        data = response.text
+        soup = BeautifulSoup(data, "lxml")
+        return soup
+    else:
+        return None
 
 
 def store_soup(soup, filename):
@@ -49,6 +56,8 @@ def write_to_file(links, filename):
 def get_links(url, filename):
     soup = make_soup(url)
     links = []
+    if soup is None:
+        return []
     for link in soup.find_all("a"):
         link_url = link.get("href")
         url_found = link_url
@@ -83,7 +92,10 @@ def main_download_links(linklistfile, output_dir):
             if "rdiff" in line:
                 continue
             s = make_soup(line)
-            store_soup(s, ofilename)
+            if s is not None:
+                store_soup(s, ofilename)
+            else:
+                print( f"No output for: {ofilename}" )
 
 
 def main_get_links(letter, output_dir):
